@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bayesian Network Creator</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            margin-top: 10px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bayesian Network Creator</h1>
+    <div>
+        <label for="node-name">Node Name:</label>
+        <input type="text" id="node-name">
+        <label for="node-states">Node States (comma-separated):</label>
+        <input type="text" id="node-states">
+        <button onclick="addNode()">Add Node</button>
+    </div>
+    <div>
+        <h2>Nodes and Relationships</h2>
+        <ul id="nodes-list"></ul>
+    </div>
+    <div>
+        <button onclick="createNetwork()">Create Bayesian Network</button>
+        <button onclick="visualizeNetwork()">Visualize</button>
+    </div>
+    <div id="visualization">
+        <canvas id="graph-canvas" width="800" height="400"></canvas>
+    </div>
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h2>Select Parents for Node</h2>
+            <select id="parent-nodes" multiple></select>
+            <button onclick="saveParents()">Save</button>
+        </div>
+    </div>
+
+    <script>
+        const nodes = [];
+        const relationships = {};
+        let currentNodeName = "";
+
+        function addNode() {
+            const nodeName = document.getElementById("node-name").value;
+            const nodeStates = document.getElementById("node-states").value.split(",").map(state => state.trim());
+
+            if (nodeName && nodeStates.length > 0) {
+                nodes.push({ name: nodeName, states: nodeStates });
+                document.getElementById("node-name").value = "";
+                document.getElementById("node-states").value = "";
+                updateNodesList();
+            }
+        }
+
+        function updateNodesList() {
+            const nodesList = document.getElementById("nodes-list");
+            nodesList.innerHTML = "";
+
+            for (const node of nodes) {
+                const li = document.createElement("li");
+                li.textContent = `${node.name}: ${node.states.join(", ")}`;
+                nodesList.appendChild(li);
+            }
+        }
+
+        function createNetwork() {
+            for (const node of nodes) {
+                openModal(node.name);
+            }
+        }
+
+        function openModal(nodeName) {
+            currentNodeName = nodeName;
+            const parentNodesSelect = document.getElementById("parent-nodes");
+            parentNodesSelect.innerHTML = "";
+
+            for (const node of nodes) {
+                if (node.name !== currentNodeName) {
+                    const option = document.createElement("option");
+                    option.value = node.name;
+                    option.textContent = node.name;
+                    parentNodesSelect.appendChild(option);
+                }
+            }
+
+            const modal = document.getElementById("modal");
+            modal.style.display = "block";
+        }
+
+        function saveParents() {
+            const parentNodesSelect = document.getElementById("parent-nodes");
+            const selectedParents = Array.from(parentNodesSelect.selectedOptions).map(option => option.value);
+            relationships[currentNodeName] = selectedParents;
+            closeModal();
+        }
+
+        function closeModal() {
+            const modal = document.getElementById("modal");
+            modal.style.display = "none";
+        }
+
+        function visualizeNetwork() {
+            const canvas = document.getElementById("graph-canvas");
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 100;
+            const angleIncrement = (2 * Math.PI) / nodes.length;
+
+            ctx.font = "12px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
+            for (let i = 0; i < nodes.length; i++) {
+                const node = nodes[i];
+                const angle = i * angleIncrement;
+
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+
+                ctx.beginPath();
+                ctx.arc(x, y, 10, 0, 2 * Math.PI);
+                ctx.fill();
+
+                ctx.fillText(node.name, x, y - 15);
+
+                const parentNodes = relationships[node.name] || [];
+                for (const parentName of parentNodes) {
+                    const parentIndex = nodes.findIndex(n => n.name === parentName);
+                    if (parentIndex !== -1) {
+                        const parentAngle = parentIndex * angleIncrement;
+                        const parentX = centerX + radius * Math.cos(parentAngle);
+                        const parentY = centerY + radius * Math.sin(parentAngle);
+
+                        ctx.beginPath();
+                        ctx.moveTo(parentX, parentY);
+                        ctx.lineTo(x, y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
