@@ -67,10 +67,7 @@
             <button onclick="saveParents()">Save</button>
         </div>
     </div>
-    <div>
-        <button onclick="calculateAndVisualizeInferences()">Calculate Inferences</button>
-    </div>
-    <div id="inference-results"></div>
+
     <script>
         const nodes = [];
         const relationships = {};
@@ -123,17 +120,9 @@
                 row.appendChild(parentCell);
 
                 const probabilityCell = document.createElement("td");
-                const probabilityInputs = [];
-                for (const state of node.states) {
-                    const label = document.createElement("label");
-                    label.textContent = `${state}: `;
-                    const probabilityInput = document.createElement("input");
-                    probabilityInput.type = "text";
-                    probabilityInput.style.width = "40px"; // Adjust the width as needed
-                    label.appendChild(probabilityInput);
-                    probabilityInputs.push(probabilityInput);
-                    probabilityCell.appendChild(label);
-                }
+                const probabilityInput = document.createElement("input");
+                probabilityInput.type = "text";
+                probabilityCell.appendChild(probabilityInput);
                 row.appendChild(probabilityCell);
 
                 parentTable.appendChild(row);
@@ -149,8 +138,8 @@
                 const nodeName = row.cells[0].textContent;
                 const parentSelect = row.cells[1].querySelector("select");
                 const selectedParents = Array.from(parentSelect.selectedOptions).map(option => option.value);
-                const probabilityInputs = row.cells[2].querySelectorAll("input");
-                const probabilities = Array.from(probabilityInputs).map(input => parseFloat(input.value));
+                const probabilityInput = row.cells[2].querySelector("input");
+                const probabilities = probabilityInput.value.split(",").map(prob => parseFloat(prob.trim()));
                 relationships[nodeName] = { parents: selectedParents, probabilities };
             }
             closeModal();
@@ -226,88 +215,6 @@
                 }
             }
         }
-
-
-        function calculateInferences() {
-        const inferenceResults = {};
-
-        for (const node of nodes) {
-            const parents = relationships[node.name]?.parents || [];
-            const probabilities = relationships[node.name]?.probabilities || [];
-
-            for (let i = 0; i < node.states.length; i++) {
-                const state = node.states[i];
-                let inference = 0;
-
-                if (parents.length === 0) {
-                    inference = probabilities[i]; // If no parents, use the given probability
-                } else {
-                    const parentCombinations = generateParentCombinations(parents);
-                    for (const combination of parentCombinations) {
-                        const parentProbabilities = getProbabilitiesForParents(combination, parents);
-                        const index = parentCombinations.indexOf(combination);
-                        inference += parentProbabilities[index] * probabilities[i];
-                    }
-                }
-
-                if (!inferenceResults[node.name]) {
-                    inferenceResults[node.name] = {};
-                }
-                inferenceResults[node.name][state] = inference;
-            }
-        }
-
-        return inferenceResults;
-    }
-
-    function generateParentCombinations(parents) {
-        const parentCombinations = [];
-        const max = Math.pow(2, parents.length);
-
-        for (let i = 0; i < max; i++) {
-            const combination = [];
-            for (let j = 0; j < parents.length; j++) {
-                if ((i & (1 << j)) > 0) {
-                    combination.push(parents[j]);
-                }
-            }
-            parentCombinations.push(combination);
-        }
-
-        return parentCombinations;
-    }
-
-    function getProbabilitiesForParents(parentValues, parents) {
-        const probabilities = [];
-        for (const node of nodes) {
-            if (parents.includes(node.name)) {
-                const relationship = relationships[node.name];
-                const parentStates = relationship.parents.map(parent => parentValues[parents.indexOf(parent)]);
-                const probabilityIndex = node.states.indexOf(node.states.find(state => state === parentValues[parents.indexOf(node.name)]));
-                const probability = relationship.probabilities[probabilityIndex];
-                probabilities.push(probability);
-            }
-        }
-        return probabilities;
-    }
-
-    function visualizeInferences(inferenceResults) {
-        const inferenceDiv = document.getElementById("inference-results");
-        inferenceDiv.innerHTML = "<h2>Inference Results</h2>";
-
-        for (const node in inferenceResults) {
-            const result = inferenceResults[node];
-            const resultString = Object.entries(result).map(([state, probability]) => `${state}: ${probability.toFixed(3)}`).join(", ");
-            const nodeResult = `<p><strong>${node}:</strong> ${resultString}</p>`;
-            inferenceDiv.innerHTML += nodeResult;
-        }
-    }
-    </script>
-    <script>
-        function calculateAndVisualizeInferences() {
-    const inferenceResults = calculateInferences();
-    visualizeInferences(inferenceResults);
-}
     </script>
 </body>
 </html>
