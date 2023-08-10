@@ -68,4 +68,4 @@ def handle_update_node_data(data):
     emit('node_data', {'data': nodeData}, broadcast=True)
     
 if __name__ == "__main__":
-    socketio.run(app, debug=True, host='0.0.0.0', port=4400)
+    socketio.run(app, debug=True, host='0.0.0.0', port=4400,allow_unsafe_werkzeug=True)
