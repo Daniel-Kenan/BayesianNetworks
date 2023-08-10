@@ -1,3 +1,4 @@
+import asyncio
 from flask import Flask, render_template
 from flask_socketio import SocketIO, emit
 
@@ -68,4 +69,15 @@ def handle_update_node_data(data):
     emit('node_data', {'data': nodeData}, broadcast=True)
     
 if __name__ == "__main__":
-    socketio.run(app, debug=True, host='0.0.0.0', port=4400,allow_unsafe_werkzeug=True)
+
+    # socketio.run(app, debug=True, host='0.0.0.0', port=4400,allow_unsafe_werkzeug=True)
+    import os
+    from hypercorn.config import Config
+    from hypercorn.asyncio import serve
+
+    port = int(os.environ.get('PORT', 4400))  # Default to 4400 if PORT environment variable not set
+    config = Config()
+    config.bind = [f"0.0.0.0:{port}"]
+    
+    
+    asyncio.run(serve(app, config))
