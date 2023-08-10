@@ -1,3 +1,4 @@
+
 function dragElement(elmnt) {
     var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
     if (document.getElementById(elmnt.id )) {
@@ -17,6 +18,11 @@ function dragElement(elmnt) {
       document.onmouseup = closeDragElement;
       // call a function whenever the cursor moves:
       document.onmousemove = elementDrag;
+      for(const circle of Array.from(elmnt.children).slice(1)){
+        circle.classList.add('visible');
+      }
+
+      
     }
   
     function elementDrag(e) {
@@ -31,7 +37,8 @@ function dragElement(elmnt) {
       elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
       elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
       elmnt.classList.add('dragging');
-      isbin(elmnt)
+      
+      
     }
   
     function closeDragElement() {
@@ -43,5 +50,22 @@ function dragElement(elmnt) {
       elem.left = elmnt.style.left; 
       elem.top = elmnt.style.top;
       elmnt.classList.remove('dragging');
+
+      for(const circle of Array.from(elmnt.children).slice(1)){
+        circle.classList.remove('visible');
+        
+        let parentsNode = document.getElementById(elem.name).getAttribute('data-parents') ; 
+        if(parentsNode){
+            let parent = document.getElementById(parentsNode);
+            console.log(parent.children[4])
+            let parentCircles = document.getElementById(parentsNode).children
+            let rectx = document.getElementById(parentsNode).children[2].getBoundingClientRect().x ; 
+            let recty = document.getElementById(parentsNode).children[2].getBoundingClientRect().y ; 
+
+          //  arrow1.update({source: {x: rectx, y: recty}, destination: {x:document.getElementById(elem.name).children[4].getBoundingClientRect().x , y: document.getElementById(elem.name).children[4].getBoundingClientRect().y}});
+          socket.emit('update_node_data', { data: nodeData });
+            
+        }
+      }
     }
   }

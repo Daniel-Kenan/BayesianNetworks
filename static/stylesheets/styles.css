@@ -83,3 +83,59 @@ body,html {
   cursor: grabbing;
   border-color: orangered;
 }
+
+
+.circle {
+  width: 10px;
+  height: 10px;
+  background-color: orangered;
+  border-radius: 50%;
+  position: absolute;
+  cursor: pointer;
+  visibility: hidden;
+}
+
+.top {
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.right {
+  top: 50%;
+  right: -5px;
+  transform: translateY(-50%);
+}
+
+.bottom {
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.left {
+  top: 50%;
+  left: -5px;
+  transform: translateY(-50%);
+}
+
+.visible {
+  visibility: visible;
+  visibility: hidden;
+}
+
+.arrow-with-line {
+  position: absolute;
+  height: 1px; /* Adjust the thickness of the line */
+  background-color: #fff; /* Change the color of the line */
+}
+
+.arrow-with-line::before {
+  content: '';
+  position: absolute;
+  bottom: -10px; /* Adjust the distance of the arrowhead from the line */
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  transform: rotate(270deg);
+  border-bottom: 20px solid #fff; /* Change the color as needed */
+}

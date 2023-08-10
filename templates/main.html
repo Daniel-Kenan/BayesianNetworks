@@ -5,34 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Node Graphs</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <link rel="stylesheet" href="styles.css"> <!-- You can create your own CSS file for styling -->
+  <link rel="stylesheet" href="/static/stylesheets/styles.css"> <!-- You can create your own CSS file for styling -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
-    var nodeData = [
-  {
-    name: 'Barrier',
-    left:"300px",
-  top:"300px",
-    states: [
-      { name: 'State A', probability: 0.3 },
-      { name: 'State B', probability: 0.5 },
-      { name: 'State C', probability: 0.2 }, 
-    ],
-    parent:[],
-  },
-  {
-    name: 'Cover',
-    states: [
-      { name: 'State X', probability: 0.1 },
-      { name: 'State Y', probability: 0.7 },
-    ],
-    left:"600px",
-  top:"390px",
-    parent:[],
-  },
-];
+    var nodeData = []
   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
+
+  <script>
+   var socket = io.connect('http://localhost:4400');
+  
+  
+  socket.on('connect', function() {
+      socket.emit('request_node_data');
+  });
+  
+  
+  socket.on('node_data', function(data) {
+      nodeData = data.data;
+      console.log(nodeData);
+  });
+  
+  
+  socket.emit('client_message', { message: 'Hello, server!' });
+  
+  
+  socket.on('server_message', function(data) {
+      console.log('Received from server:', data.message);
+     
+  });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/arrow-line/dist/arrow-line.min.js"></script>
 </head>
 <body>
   <div style="left: 0;top: 0; position: absolute;color: white;justify-content: center;display: flex;align-items: top;height: 100%;width: 100%;z-index: 999;background-color: #1E1E1E;" id="modal">
@@ -147,9 +151,18 @@
   </div>
   <div class="node-graphs" id="nodeGraphsContainer">
   </div>
-  <script src="delNode.js"></script>
-  <script src="draggable.js"></script>
-  <script src="scripts.js"></script>
-<script src="spawnnode.js"></script>
+  <div id="arrow-container"></div>
+  <script src="/static/javascripts/arrows.js"></script>
+  <script src="/static/javascripts/delNode.js"></script>
+  <script src="/static/javascripts/draggable.js"></script>
+  <script src="/static/javascripts/scripts.js"></script>
+<script src="/static/javascripts/spawnnode.js"></script>
+<script> setTimeout(()=>{
+  
+  updateNodeCharts();
+ 
+  },2000)</script>
+<!-- Add this script tag to include the SocketIO client library -->
+
 </body>
 </html>

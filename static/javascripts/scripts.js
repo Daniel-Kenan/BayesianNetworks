@@ -17,6 +17,8 @@ function updateNodeCharts() {
     nodeGraph.style.left = node.left ; 
     nodeGraph.style.top = node.top ; 
     nodeGraph.setAttribute("id",node.name);
+    nodeGraph.setAttribute("data-parents",node.parents.join(" "));
+
     nodeGraph.classList.add('node-graph');
     nodeListBtnsHtml += `<a href="#">${node.name}</a>` ; 
     const nodeChartContainer = document.createElement('div');
@@ -52,7 +54,18 @@ function updateNodeCharts() {
     new Chart(ctx, chartConfig);
     
     dragElement(nodeGraph);
-        
+    const circles = [
+      { className: "circle top" },
+      { className: "circle right" },
+      { className: "circle bottom" },
+      { className: "circle left" }
+    ]
+    
+    for (const circle of circles) {
+      let elem =  document.createElement("div")
+      elem.setAttribute("class",circle.className);
+      nodeGraph.appendChild(elem)
+    }        
     
   }
   );
