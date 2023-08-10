@@ -1,0 +1,14 @@
+project:
+  name: BayesianNetworks
+  version: 1.0.0
+
+setup:
+  python38: python38
+  gcc: gcc
+
+install:
+  - python -m venv --copies /opt/venv
+  - . /opt/venv/bin/activate
+  - pip install -r requirements.txt
+
+start: python your_app.py
