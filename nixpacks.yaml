@@ -11,4 +11,4 @@ install:
   - . /opt/venv/bin/activate
   - pip install -r requirements.txt
 
-start: python your_app.py
+start: python server.py
