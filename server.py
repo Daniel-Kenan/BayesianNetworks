@@ -32,7 +32,7 @@ nodeData = [
     },
     # ... other node data entries ...
 ]
-
+  
 @app.route("/")
 def hello_world():
     return render_template("main.html")
