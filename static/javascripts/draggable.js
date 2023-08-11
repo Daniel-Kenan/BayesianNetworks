@@ -48,11 +48,12 @@ function dragElement(elmnt) {
       elem.top = elmnt.style.top;
       elmnt.classList.remove('dragging');
       socket.emit('update_node_data', { data: nodeData });
-
+      
+      updateNodeCharts()
       for(const circle of Array.from(elmnt.children).slice(1,4)){
         circle.classList.remove('visible');
         
-        let parentsNode = document.getElementById(elem.name).getAttribute('data-parents') ; 
+        let parentsNode = document.getElementById(elem.name).getAttribute('data-children') ; 
         if(parentsNode){
             let parent = document.getElementById(parentsNode);
             console.log(parent.children[4])

@@ -8,6 +8,45 @@ socketio = SocketIO(app)
 
 nodeData = [
     {
+        "name": "Fish",
+        "left": "800px",
+        "top": "250px",
+        "states": [
+          
+            {"name": "zero", "probability": 0.2},
+            {"name": "low", "probability": 0.0},
+            {"name": "medium", "probability": 0.0},
+            {"name": "high", "probability": 0.0},
+            {"name": "zero", "probability": 0.2},
+           
+        ],
+        "children": []
+    },
+    {
+        "name": "Cover",
+        "left": "600px",
+        "top": "390px",
+        "states": [
+            {"name": "zero", "probability": 1.0},
+            {"name": "low", "probability": 0.25},
+            {"name": "medium", "probability": 0.01},
+            {"name": "high", "probability": 0.5}
+        ],
+        "children": ["Fish"]
+    },
+    {
+        "name": "Migration",
+        "left": "500px",
+        "top": "100px",
+        "states": [
+            {"name": "zero", "probability": 0.95},
+            {"name": "low", "probability": 0.5},
+            {"name": "medium", "probability": 0.25},
+            {"name": "high", "probability": 0.0}
+        ],
+        "children": ["Fish"]
+    },
+    {
         "name": "Barrier",
         "left": "300px",
         "top": "300px",
@@ -17,22 +56,23 @@ nodeData = [
             {"name": "many", "probability": 0.2},
             {"name": "huge", "probability": 0.2}
         ],
-        "parents": []
+        "children": ["Migration"]
     },
+   
     {
-        "name": "Cover",
-        "left": "600px",
-        "top": "390px",
+        "name": "Discharge",
+        "left": "100px",
+        "top": "200px",
         "states": [
             {"name": "zero", "probability": 0.1},
-            {"name": "low", "probability": 0.7},
-            {"name": "medium", "probability": 0.1},
-            {"name": "high", "probability": 0.7}
+            {"name": "low", "probability": 0.4},
+            {"name": "medium", "probability": 0.4},
+            {"name": "high", "probability": 0.1}
         ],
-        "parents": ["Barrier"]
-    }, 
-    # ... other node data entries ...
-]
+        "children": ["Cover"]
+    }
+];
+
   
 @app.route("/")
 def hello_world():
