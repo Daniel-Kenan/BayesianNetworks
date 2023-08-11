@@ -27,10 +27,10 @@
   socket.on('node_data', function(data) {
       nodeData = data.data;
       console.log(nodeData);
-      updateNodeCharts()    
+      // updateNodeCharts()    
       
   });
-  
+
   
   socket.emit('client_message', { message: 'Hello, server!' });
   

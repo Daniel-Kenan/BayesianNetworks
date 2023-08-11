@@ -47,6 +47,7 @@ function dragElement(elmnt) {
       elem.left = elmnt.style.left; 
       elem.top = elmnt.style.top;
       elmnt.classList.remove('dragging');
+      socket.emit('update_node_data', { data: nodeData });
 
       for(const circle of Array.from(elmnt.children).slice(1,4)){
         circle.classList.remove('visible');
@@ -60,9 +61,9 @@ function dragElement(elmnt) {
             let recty = document.getElementById(parentsNode).children[2].getBoundingClientRect().y ; 
 
           //  arrow1.update({source: {x: rectx, y: recty}, destination: {x:document.getElementById(elem.name).children[4].getBoundingClientRect().x , y: document.getElementById(elem.name).children[4].getBoundingClientRect().y}});
-          socket.emit('update_node_data', { data: nodeData });
-            
+          
         }
       }
     }
+   
   }
