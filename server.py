@@ -71,13 +71,13 @@ def handle_update_node_data(data):
 if __name__ == "__main__":
     
     socketio.run(app, debug=True, port=4400)
-    # import os
-    # from hypercorn.config import Config
-    # from hypercorn.asyncio import serve
+    import os
+    from hypercorn.config import Config
+    from hypercorn.asyncio import serve
 
-    # port = int(os.environ.get('PORT', 4400))  # Default to 4400 if PORT environment variable not set
-    # config = Config()
-    # config.bind = [f"0.0.0.0:{port}"]
+    port = int(os.environ.get('PORT', 4400))  # Default to 4400 if PORT environment variable not set
+    config = Config()
+    config.bind = [f"0.0.0.0:{port}"]
     
     
-    # asyncio.run(serve(app, config))
+    asyncio.run(serve(app, config))
