@@ -66,13 +66,27 @@ function updateNodeCharts() {
       elem.setAttribute("class",circle.className);
       nodeGraph.appendChild(elem)
     }        
-    
+      let delButton =  document.createElement("button")
+      delButton.appendChild( document.createTextNode("X"));
+      delButton.setAttribute("class","delete-node-btn visible");
+      delButton.setAttribute("onclick", `deleteNode('${node.name}')`);
+      nodeGraph.appendChild(delButton);
+        
   }
   );
   nodeListBtnsHtml += `<a href="#" onclick="addNode()">Add Node</a>`;
-  nodeListBtns.innerHTML = nodeListBtnsHtml; 
+  nodeListBtns.innerHTML = nodeListBtnsHtml;
+ if (init){
+  socket.emit('update_node_data', { data: nodeData });
+ }
 }
 
+function deleteNode(id){
+  let node = nodeData.find(({name})=> name == id) ; 
+  nodeData.pop(node) ; 
+  document.getElementById("delNode").classList.remove("delColor"); 
+  updateNodeCharts() ; 
+}
 // Initial chart display
 updateNodeCharts();
 

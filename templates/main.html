@@ -10,6 +10,8 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
     var nodeData = []
+    var init = false; 
+      
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
 
@@ -25,6 +27,7 @@
   socket.on('node_data', function(data) {
       nodeData = data.data;
       console.log(nodeData);
+      
   });
   
   
@@ -160,9 +163,18 @@
 <script> setTimeout(()=>{
   
   updateNodeCharts();
- 
+  init =true ; 
   },2000)</script>
 <!-- Add this script tag to include the SocketIO client library -->
+<script>
+  document.getElementById("delNode").addEventListener('click', ()=>{
+    document.getElementById("delNode").classList.toggle("delColor");  
+    let delBtns  = document.getElementsByClassName("delete-node-btn")
 
+    for (let btn of delBtns) {
+      console.log(btn.classList.toggle('visible'));
+    }
+  })
+</script>
 </body>
 </html>

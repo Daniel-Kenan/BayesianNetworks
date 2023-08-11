@@ -139,3 +139,17 @@ body,html {
   transform: rotate(270deg);
   border-bottom: 20px solid #fff; /* Change the color as needed */
 }
+.delete-node-btn{
+  position: absolute;
+  right: 0;
+  top: 0;
+background-color: red;
+color:whitesmoke ; 
+border: 0.5px solid red;
+font-weight: bolder;
+
+}
+
+.delColor{
+  background-color: red;
+}

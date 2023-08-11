@@ -18,10 +18,9 @@ function dragElement(elmnt) {
       document.onmouseup = closeDragElement;
       // call a function whenever the cursor moves:
       document.onmousemove = elementDrag;
-      for(const circle of Array.from(elmnt.children).slice(1)){
-        circle.classList.add('visible');
+      for(const circle of Array.from(elmnt.children).slice(1,4)){
+        circle.classList.add('visible');  
       }
-
       
     }
   
@@ -37,8 +36,6 @@ function dragElement(elmnt) {
       elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
       elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
       elmnt.classList.add('dragging');
-      
-      
     }
   
     function closeDragElement() {
@@ -51,7 +48,7 @@ function dragElement(elmnt) {
       elem.top = elmnt.style.top;
       elmnt.classList.remove('dragging');
 
-      for(const circle of Array.from(elmnt.children).slice(1)){
+      for(const circle of Array.from(elmnt.children).slice(1,4)){
         circle.classList.remove('visible');
         
         let parentsNode = document.getElementById(elem.name).getAttribute('data-parents') ; 
