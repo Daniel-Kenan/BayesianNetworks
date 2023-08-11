@@ -110,7 +110,7 @@ def handle_update_node_data(data):
     
 if __name__ == "__main__":
     
-    socketio.run(app, debug=True, port=4400,allow_unsafe_werkzeug=True)
+    # socketio.run(app, debug=True, port=4400,allow_unsafe_werkzeug=True)
     # import os
     # from hypercorn.config import Config
     # from hypercorn.asyncio import serve
