@@ -139,3 +139,33 @@ function drawArrows() {
     });
   });
 }
+
+
+
+
+function deleteNode(id){
+  let node = nodeData.find(({name})=> name == id) ; 
+  nodeData.pop(node) ; 
+  document.getElementById("delNode").classList.remove("delColor"); 
+  updateNodeCharts() ; 
+}
+// Initial chart display
+updateNodeCharts();
+
+// Function to toggle dropdown content on hover
+function toggleDropdown(element, show) {
+  const dropdownContent = element.querySelector('.dropdown-content');
+  if (show) {
+    dropdownContent.classList.add('show');
+  } else {
+    dropdownContent.classList.remove('show');
+  } 
+}
+
+// Dropdown toggle functionality
+$(document).ready(function() {
+  $('.dropdown-toggle').click(function() {
+    $(this).siblings('.dropdown-content').toggleClass('show');
+  });
+});
+
