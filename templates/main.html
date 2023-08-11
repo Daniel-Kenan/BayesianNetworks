@@ -20,12 +20,10 @@
   <script>
    var socket = io.connect('/');
   
-  
   socket.on('connect', function() {
       socket.emit('request_node_data');
   });
-  
-  
+    
   socket.on('node_data', function(data) {
       nodeData = data.data;
       console.log(nodeData);
@@ -33,9 +31,7 @@
       
   });
 
-  
-  socket.emit('client_message', { message: 'Hello, server!' });
-  
+  socket.emit('client_message', { message: 'Hello, server!' });  
   
   socket.on('server_message', function(data) {
       console.log('Received from server:', data.message);

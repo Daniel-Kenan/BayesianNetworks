@@ -10,7 +10,7 @@ let newNode = {
     left:"300px",
   top:"300px",
     states: [...data ],
-    parents:[],
+    children:[],
   }; 
   
   data = [];
