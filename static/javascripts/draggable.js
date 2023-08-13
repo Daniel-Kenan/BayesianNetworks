@@ -56,7 +56,7 @@ function dragElement(elmnt) {
         let parentsNode = document.getElementById(elem.name).getAttribute('data-children') ; 
         if(parentsNode){
             let parent = document.getElementById(parentsNode);
-            console.log(parent.children[4])
+            // console.log(parent.children[4])
             let parentCircles = document.getElementById(parentsNode).children
             let rectx = document.getElementById(parentsNode).children[2].getBoundingClientRect().x ; 
             let recty = document.getElementById(parentsNode).children[2].getBoundingClientRect().y ; 

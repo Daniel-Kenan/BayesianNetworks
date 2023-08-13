@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      background-color: #333;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="target" style="width: 200px; height: 200px; background-color: lightgray;">
+    Right-click me for context menu!
+  </div>
+
+  <script>
+    class ContextMenu {
+      constructor(targetId, items) {
+        this.targetId = targetId;
+        this.items = items;
+
+        this.addStyles();
+        this.initializeContextMenu();
+      }
+
+      addStyles() {
+        const style = document.createElement('style');
+        style.textContent = `
+          .context-menu {
+            display: none;
+            position: absolute;
+            background-color: #222;
+            border: 1px solid #444;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            font-size: 14px;
+            border-radius: 5px;
+          }
+
+          .menu-item {
+            padding: 8px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            justify-content: space-between;
+          }
+
+          .menu-item:hover {
+            background-color: #444;
+          }
+
+          .disabled {
+            color: #777;
+            cursor: not-allowed;
+          }
+
+          .separator {
+            border-top: 1px solid #444;
+            margin: 5px 0;
+          }
+
+          .hotkey {
+            color: #aaa;
+            margin-left: 10px;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      initializeContextMenu() {
+        const target = document.getElementById(this.targetId);
+        target.innerHTML = `
+          <div id="context-menu" class="context-menu"></div>
+          ${target.innerHTML}
+        `;
+
+        this.target = target;
+        this.menu = target.querySelector('.context-menu');
+
+        this.target.addEventListener('contextmenu', (e) => this.showContextMenu(e));
+        document.addEventListener('click', () => this.hideContextMenu());
+      }
+
+      showContextMenu(event) {
+        event.preventDefault();
+
+        const x = event.clientX;
+        const y = event.clientY;
+
+        this.menu.innerHTML = ''; // Clear existing menu items
+        this.menu.style.left = `${x}px`;
+        this.menu.style.top = `${y}px`;
+
+        for (const item of this.items) {
+          if (item === null) {
+            const separator = document.createElement('div');
+            separator.classList.add('separator');
+            this.menu.appendChild(separator);
+          } else {
+            const menuItem = document.createElement('div');
+            menuItem.textContent = item.text;
+            menuItem.addEventListener('click', item.onclick);
+            menuItem.classList.add('menu-item');
+            
+            if (item.disabled) {
+              menuItem.classList.add('disabled');
+            }
+
+            if (item.hotkey) {
+              const hotkeySpan = document.createElement('span');
+              hotkeySpan.textContent = item.hotkey;
+              hotkeySpan.classList.add('hotkey');
+              menuItem.appendChild(hotkeySpan);
+            }
+            
+            this.menu.appendChild(menuItem);
+          }
+        }
+
+        this.menu.style.display = 'block';
+      }
+
+      hideContextMenu() {
+        this.menu.style.display = 'none';
+      }
+    }
+
+    const contextMenuItems = [
+      {text: 'Back', hotkey: 'Alt+Left arrow', disabled: true, onclick: clickHandler},
+      {text: 'Forward', hotkey: 'Alt+Right arrow', disabled: true, onclick: clickHandler},
+      {text: 'Reload', hotkey: 'Ctrl+R', onclick: clickHandler},
+      null,
+      {text: 'Save as...', hotkey: 'Ctrl+S', onclick: clickHandler},
+      {text: 'Print...', hotkey: 'Ctrl+P', onclick: clickHandler},
+      {text: 'Cast...', onclick: clickHandler},
+      {text: 'Translate to English', onclick: clickHandler},
+      null,
+      {text: 'View page source', hotkey: 'Ctrl+U', onclick: clickHandler},
+      {text: 'Inspect', hotkey: 'Ctrl+Shift+I', onclick: clickHandler},
+    ];
+
+    const contextMenu = new ContextMenu('target', contextMenuItems);
+
+    function clickHandler() {
+      console.log('Menu item clicked!');
+    }
+  </script>
+</body>
+</html>

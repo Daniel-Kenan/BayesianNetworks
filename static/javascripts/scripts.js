@@ -68,7 +68,7 @@ function updateNodeCharts() {
   if (init){
     socket.emit('update_node_data', { data: nodeData });
   }
-  // drawArrows();
+  drawArrows();
 }
 
 function getCenterCoordinates(element) {
@@ -101,43 +101,86 @@ function findNearestCircle(element, circleClassName, direction) {
   return nearestCircle;
 }
 
+var arrowLines = [];
+
 function drawArrows() {
   const arrowsContainer = document.getElementById('arrowsContainer');
-  arrowsContainer.innerHTML = ''; // Clear previous arrows
+// console.trace(arrowLines);  
+  // Clear previous arrow lines from the container and the array
+  var body = document.body;
+  
+  // Get all SVG elements inside the body
+  var svgElements = body.querySelectorAll("svg");
+  
+  // Loop through each SVG element and remove it
+  svgElements.forEach(function(svgElement) {
+    svgElement.remove();
+  });
+  
+  arrowsContainer.innerHTML = '';
+  arrowLines.length = 0;
 
   nodeData.forEach(node => {
     const sourceElement = document.getElementById(node.name);
-    const sourceCircleTop = findNearestCircle(sourceElement, 'circle', 'top');
-    const sourceCircleRight = findNearestCircle(sourceElement, 'circle', 'right');
-    const sourceCircleBottom = findNearestCircle(sourceElement, 'circle', 'bottom');
-    const sourceCircleLeft = findNearestCircle(sourceElement, 'circle', 'left');
-
     node.children.forEach(childName => {
       const destinationElement = document.getElementById(childName);
-      const destinationCircleTop = findNearestCircle(destinationElement, 'circle', 'top');
-      const destinationCircleRight = findNearestCircle(destinationElement, 'circle', 'right');
-      const destinationCircleBottom = findNearestCircle(destinationElement, 'circle', 'bottom');
-      const destinationCircleLeft = findNearestCircle(destinationElement, 'circle', 'left');
 
-      if (sourceCircleTop && destinationCircleTop) {
-        const sourceCenter = getCenterCoordinates(sourceCircleTop);
-        const destinationCenter = getCenterCoordinates(destinationCircleTop);
+      // Check if the arrow line already exists in the array
+      const existingLine = arrowLines.find(line =>{
+      // console.log(line);
+      // console.log(line.start.getAttribute("id"),line.end.getAttribute("id"),"==>",node.name,childName)
+      // console.log(sourceElement.getAttribute("id"),destinationElement.getAttribute("id"))
+      //  return line.start.getAttribute("id").includes(node.name) && line.end.getAttribute("id").includes(childName)
+       return  line.start == sourceElement && line.end == destinationElement
+    });
+    console.log("================================")
+      if (existingLine) {
+               // Update existing line properties if needed
+        existingLine.startPlugColor = '#1a6be0';
+        existingLine.endPlugColor = '#1efdaa';
+        existingLine.middleLabel.text = `P(${node.name}U${childName})`;
 
-        const arrowOptions = {
-          source: sourceCenter,
-          destination: destinationCenter,
-          color: 'whitesmoke',
-          style: 'solid',
-          thickness: 0.3,
-          curvature: 0.5,
-        };
-
-        arrowLine(arrowOptions);
+        // Update options and redraw the line
+        existingLine.setOptions({
+          color: 'rgba(30, 130, 250, 0.5)',
+          startPlugColor: 'rgb(241, 76, 129)',
+          endPlugColor: 'rgba(241, 76, 129, 0.5)',
+          startPlugSize: 5,
+          endPlugSize: 8,
+          endPlugOutline: true,
+        });
+        existingLine.position();
+          console.log("modifying existing line...");
+      } else {
+        // Create a new LeaderLine instance
+        const line = new LeaderLine(sourceElement, destinationElement, {
+          startPlug: 'disc',
+          endPlug: 'arrow3',
+          startPlugColor: '#1a6be0',
+          endPlugColor: '#1efdaa',
+          middleLabel: LeaderLine.captionLabel({
+            text: `P( ${childName} | ${node.name} )`,
+            color: 'whitesmoke',
+            outlineColor: '',
+            fontWeight: "500"
+          }),
+        });
+        line.size = 0.5;
+        line.setOptions({
+          color: 'rgba(30, 130, 250, 0.5)',
+          startPlugColor: 'rgb(241, 76, 129)',
+          endPlugColor: 'rgba(241, 76, 129, 0.5)',
+          startPlugSize: 5,
+          endPlugSize: 8,
+          endPlugOutline: true,
+        });
+        // console.log("making new line...");
+        // Store the line instance in the array
+        arrowLines.push({ line, start: sourceElement, end: destinationElement });
       }
-
-      // Repeat similar code for other directions (right, bottom, left)
     });
   });
+  // console.trace(arrowLines[0].start.getAttribute("id"));
 }
 
 
