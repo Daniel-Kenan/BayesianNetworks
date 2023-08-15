@@ -36,6 +36,7 @@ function dragElement(elmnt) {
       elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
       elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
       elmnt.classList.add('dragging');
+      drawArrows();
     }
   
     function closeDragElement() {
@@ -49,14 +50,14 @@ function dragElement(elmnt) {
       elmnt.classList.remove('dragging');
       socket.emit('update_node_data', { data: nodeData });
       
-      updateNodeCharts()
+      // updateNodeCharts()
       for(const circle of Array.from(elmnt.children).slice(1,4)){
         circle.classList.remove('visible');
         
         let parentsNode = document.getElementById(elem.name).getAttribute('data-children') ; 
         if(parentsNode){
             let parent = document.getElementById(parentsNode);
-            // console.log(parent.children[4])
+          
             let parentCircles = document.getElementById(parentsNode).children
             let rectx = document.getElementById(parentsNode).children[2].getBoundingClientRect().x ; 
             let recty = document.getElementById(parentsNode).children[2].getBoundingClientRect().y ; 

@@ -2,7 +2,7 @@ var data = []; // Array to store dictionary objects
   
   document.getElementById("doneNodeBtn").addEventListener("click", ()=>{
   
-  console.log(data);
+
 $("#modal").hide(); 
   
 let newNode = {
@@ -11,6 +11,8 @@ let newNode = {
   top:"300px",
     states: [...data ],
     children:[],
+    values: [],
+    parents:[],
   }; 
   
   data = [];

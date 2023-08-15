@@ -1,4 +1,23 @@
 let currentNodeType = 'bar'; // Default chart type
+var contextmenus = [] ; 
+
+const stateColorMapping = {};
+
+function getColorForState(stateName) {
+  if (!stateColorMapping[stateName]) {
+    // Generate a random color for new states
+    stateColorMapping[stateName] = getRandomColor();
+  }
+  return stateColorMapping[stateName];
+}
+
+function getRandomColor() {
+  const randomChannel = () => Math.floor(Math.random() * 155 + 100); // Generate a value between 100 and 255
+  const red = randomChannel();
+  const green = randomChannel();
+  const blue = randomChannel();
+  return `rgb(${red}, ${green}, ${blue})`;
+  }
 
 function showChart(chartType) {
   currentNodeType = chartType;
@@ -9,18 +28,24 @@ function updateNodeCharts() {
   const nodeGraphsContainer = document.getElementById('nodeGraphsContainer');
   const nodeListBtns = document.getElementById("nodeListBtns");
   nodeGraphsContainer.innerHTML = ''; // Clear previous content
-  var nodeListBtnsHtml = ""; 
+  var nodeListBtnsHtml = "";
+   
   nodeData.forEach(node => {
     const nodeGraph = document.createElement('div');
     nodeGraph.style.left = node.left; 
     nodeGraph.style.top = node.top; 
     nodeGraph.setAttribute("id", node.name);
     nodeGraph.setAttribute("data-children", node.children.join(" "));
+    nodeGraph.setAttribute("data-contextmenu",node.name)
     nodeGraph.classList.add('node-graph');
     nodeListBtnsHtml += `<a href="#">${node.name}</a>`; 
     const nodeChartContainer = document.createElement('div');
     nodeChartContainer.classList.add('node-chart-container');
     nodeChartContainer.innerHTML = `<h3>${node.name}</h3>`;
+    if (!node.values.length && node.parents.length){
+      nodeChartContainer.innerHTML += `<span style="color:red;position:absolute; left:30%; bottom:-30px;font-size:18px ">Not Specified CPD Parent</span>`;
+    }
+    
     nodeGraph.appendChild(nodeChartContainer);
     nodeGraphsContainer.appendChild(nodeGraph);
     const ctx = document.createElement('canvas');
@@ -33,7 +58,7 @@ function updateNodeCharts() {
         datasets: [{
           label: node.name,
           data: node.states.map(state => state.probability),
-          backgroundColor: ['#ff6384', '#36a2eb', '#ffce56'],
+          backgroundColor: node.states.map(state => getColorForState(state.name)),
           borderWidth: 1
         }]
       },
@@ -63,147 +88,98 @@ function updateNodeCharts() {
     delButton.setAttribute("onclick", `deleteNode('${node.name}')`);
     nodeGraph.appendChild(delButton);
   });
+
   nodeListBtnsHtml += `<a href="#" onclick="addNode()">Add Node</a>`;
   nodeListBtns.innerHTML = nodeListBtnsHtml;
+
+
   if (init){
     socket.emit('update_node_data', { data: nodeData });
   }
   drawArrows();
+ 
+    
+   
+  for (let node of nodeData) {
+    const options = [
+      { label: 'Edit Node', handler: (index) => console.log(`Option 1 clicked for ${node.name}`), shortcut: 'Ctrl+1' },
+      { label: 'Delete Node', handler: (index) => deleteNode(node.name), shortcut: 'Ctrl+2' },
+      { label: 'Add Parent Node', handler: (index) => console.log('Option 3 clicked for element 1'), shortcut: 'Ctrl+3' },
+      { label: 'Add Child Node', handler: (index) =>{
+
+        let child = prompt("Mention the child node") ; 
+        let parent_node = nodeData.find(({name}) =>{ return name  == node.name} )
+        parent_node.children.push(child) ;
+        let child_node = nodeData.find(({name}) =>{ return name  == child})
+        child_node.parents.push(node.name);  
+        updateNodeCharts()
+
+        drawArrows(); 
+      }, shortcut: 'Ctrl+1' },
+      { label: 'View Probabilities', handler: (index) => console.log('Option 2 clicked for element 1'), shortcut: 'Ctrl+2' },
+      { label: 'Run Inferences', handler: (index) => console.log('Option 3 clicked for element 1'), shortcut: 'Ctrl+3' },
+      { label: 'Visualise CPT', handler: (index) => console.log('Option 1 clicked for element 1'), shortcut: 'Ctrl+1' },
+      { label: 'Export Node', handler: (index) => console.log('Option 2 clicked for element 1'), shortcut: 'Ctrl+2' },
+      // { label: 'Option 3', handler: (index) => console.log('Option 3 clicked for element 1'), shortcut: 'Ctrl+3' }
+    ];
+  new ContextMenu(node.name, [ ...options]);
+    
+    
+  }
+  
 }
 
-function getCenterCoordinates(element) {
-  const rect = element.getBoundingClientRect();
-  return {
-    x: rect.left + rect.width / 2,
-    y: rect.top + rect.height / 2,
-  };
-}
 
-function findNearestCircle(element, circleClassName, direction) {
-  const circles = element.querySelectorAll(`.${circleClassName}.${direction}`);
-  const sourceCenter = getCenterCoordinates(element);
-  let nearestCircle = null;
-  let minDistance = Number.MAX_VALUE;
 
-  circles.forEach(circle => {
-    const circleCenter = getCenterCoordinates(circle);
-    const distance = Math.sqrt(
-      Math.pow(circleCenter.x - sourceCenter.x, 2) +
-      Math.pow(circleCenter.y - sourceCenter.y, 2)
-    );
 
-    if (distance < minDistance) {
-      minDistance = distance;
-      nearestCircle = circle;
-    }
-  });
-
-  return nearestCircle;
-}
-
-var arrowLines = [];
 
 function drawArrows() {
-  const arrowsContainer = document.getElementById('arrowsContainer');
-// console.trace(arrowLines);  
-  // Clear previous arrow lines from the container and the array
-  var body = document.body;
-  
-  // Get all SVG elements inside the body
-  var svgElements = body.querySelectorAll("svg");
-  
-  // Loop through each SVG element and remove it
+  const svgElements = document.body.querySelectorAll("svg");
   svgElements.forEach(function(svgElement) {
     svgElement.remove();
   });
-  
-  arrowsContainer.innerHTML = '';
-  arrowLines.length = 0;
-
   nodeData.forEach(node => {
     const sourceElement = document.getElementById(node.name);
-    node.children.forEach(childName => {
-      const destinationElement = document.getElementById(childName);
-
-      // Check if the arrow line already exists in the array
-      const existingLine = arrowLines.find(line =>{
-      // console.log(line);
-      // console.log(line.start.getAttribute("id"),line.end.getAttribute("id"),"==>",node.name,childName)
-      // console.log(sourceElement.getAttribute("id"),destinationElement.getAttribute("id"))
-      //  return line.start.getAttribute("id").includes(node.name) && line.end.getAttribute("id").includes(childName)
-       return  line.start == sourceElement && line.end == destinationElement
-    });
-    console.log("================================")
-      if (existingLine) {
-               // Update existing line properties if needed
-        existingLine.startPlugColor = '#1a6be0';
-        existingLine.endPlugColor = '#1efdaa';
-        existingLine.middleLabel.text = `P(${node.name}U${childName})`;
-
-        // Update options and redraw the line
-        existingLine.setOptions({
-          color: 'rgba(30, 130, 250, 0.5)',
-          startPlugColor: 'rgb(241, 76, 129)',
-          endPlugColor: 'rgba(241, 76, 129, 0.5)',
-          startPlugSize: 5,
-          endPlugSize: 8,
-          endPlugOutline: true,
-        });
-        existingLine.position();
-          console.log("modifying existing line...");
-      } else {
-        // Create a new LeaderLine instance
-        const line = new LeaderLine(sourceElement, destinationElement, {
-          startPlug: 'disc',
-          endPlug: 'arrow3',
-          startPlugColor: '#1a6be0',
-          endPlugColor: '#1efdaa',
-          middleLabel: LeaderLine.captionLabel({
-            text: `P( ${childName} | ${node.name} )`,
-            color: 'whitesmoke',
-            outlineColor: '',
-            fontWeight: "500"
-          }),
-        });
-        line.size = 0.5;
-        line.setOptions({
-          color: 'rgba(30, 130, 250, 0.5)',
-          startPlugColor: 'rgb(241, 76, 129)',
-          endPlugColor: 'rgba(241, 76, 129, 0.5)',
-          startPlugSize: 5,
-          endPlugSize: 8,
-          endPlugOutline: true,
-        });
-        // console.log("making new line...");
-        // Store the line instance in the array
-        arrowLines.push({ line, start: sourceElement, end: destinationElement });
-      }
-    });
+    try{
+      node.children.forEach(childName => {
+        const destinationElement = document.getElementById(childName);
+          const line = new LeaderLine(sourceElement, destinationElement, {
+            startPlug: 'disc',
+            endPlug: 'arrow3',
+            color: 'rgba(250, 250, 250, 0.7)',
+            startPlugColor: 'rgb(241, 76, 129)',
+            endPlugColor: 'rgba(241, 76, 129, 0.5)',
+            startPlugSize: 5,
+            endPlugSize: 8,
+            endPlugOutline: true,
+            middleLabel: LeaderLine.captionLabel({
+              text: `P( ${childName} | ${node.name} )`,
+              color: 'whitesmoke',
+              outlineColor: '',
+              fontWeight: "500",
+              fontSize:"20px"
+            }),
+          });
+          line.size = 0.5; 
+      });
+    }catch{}
+    
   });
-  // console.trace(arrowLines[0].start.getAttribute("id"));
 }
 
+function deleteNode(id) {
+  let indexToDelete = nodeData.findIndex(({ name }) => name === id);
 
-
-
-function deleteNode(id){
-  let node = nodeData.find(({name})=> name == id) ; 
-  nodeData.pop(node) ; 
-  document.getElementById("delNode").classList.remove("delColor"); 
-  updateNodeCharts() ; 
+  if (indexToDelete !== -1) {
+    nodeData.splice(indexToDelete, 1);
+    updateNodeCharts();
+  } else {
+    console.log("Node not found");
+  }
 }
 // Initial chart display
 updateNodeCharts();
 
-// Function to toggle dropdown content on hover
-function toggleDropdown(element, show) {
-  const dropdownContent = element.querySelector('.dropdown-content');
-  if (show) {
-    dropdownContent.classList.add('show');
-  } else {
-    dropdownContent.classList.remove('show');
-  } 
-}
 
 // Dropdown toggle functionality
 $(document).ready(function() {

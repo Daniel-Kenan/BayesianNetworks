@@ -140,9 +140,30 @@ nodeData = [
         ]
     }
 ]
+import json
+parent_child_map = {}
 
+# Populate parent_child_map with parent-child relationships
+for node in nodeData:
+    if "children" in node and node["children"]:
+        for child_name in node["children"]:
+            if child_name in parent_child_map:
+                parent_child_map[child_name].append(node["name"])
+            else:
+                parent_child_map[child_name] = [node["name"]]
 
-  
+# Update nodes with values and parents
+for node in nodeData:
+    node["values"] = [[], []]
+    if node["name"] in parent_child_map:
+        node["parents"] = parent_child_map[node["name"]]
+    else:
+        node["parents"] = []
+
+# Print the formatted JSON using json.dumps()
+formatted_json = json.dumps(nodeData, indent=4)
+print(formatted_json)
+
 @app.route("/")
 def hello_world():
     return render_template("main.html")
