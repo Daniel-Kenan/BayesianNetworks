@@ -3,3 +3,4 @@ Flask_SocketIO==5.3.5
 gunicorn
 simple-websocket
 hypercorn
+openpyxl
