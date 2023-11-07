@@ -1,6 +1,6 @@
-Flask==2.2.2
-Flask_SocketIO==5.3.5
+Flask
+Flask_SocketIO
 gunicorn
 simple-websocket
 hypercorn
-openpyxl
+openpyxly
