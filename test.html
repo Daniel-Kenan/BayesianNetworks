@@ -1,106 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-  }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .select-box {
+            border: 1px solid #ccc;
+            overflow-y: auto;
+            height: 150px; /* Set a fixed height for the select box */
+        }
 
-  .context-menu {
-    display: none;
-    position: absolute;
-    background-color: white;
-    border: 1px solid #ccc;
-    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
-    list-style: none;
-    padding: 0;
-  }
+        .select-item {
+            padding: 8px;
+            cursor: pointer;
+        }
 
-  .context-menu ul {
-    margin: 0;
-    padding: 0;
-    text-decoration: none;
-    list-style-type: none;
-  }
-
-  .context-menu li {
-    padding: 8px 12px;
-    cursor: pointer;
-    list-style-type: none;
-  }
-
-  .context-menu li:hover {
-    background-color: #f0f0f0;
-  }
-</style>
-<title>Context Menu Example</title>
+        .select-item:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
 </head>
 <body>
-  <div id="element1" style="width: 100px; height: 100px; background-color: lightblue;">Right-click me 1</div>
-  <div id="element2" style="width: 100px; height: 100px; background-color: lightgreen;">Right-click me 2</div>
 
-  <script>
-    class ContextMenu {
-      constructor(elementId, options) {
-        this.element = document.getElementById(elementId);
-        this.menu = this.createContextMenu(options);
+<div class="select-box" id="mySelectBox" multiple>
+    <div class="select-item" onclick="toggleSelection(this)">Item 1</div>
+    <div class="select-item" onclick="toggleSelection(this)">Item 2</div>
+    <div class="select-item" onclick="toggleSelection(this)">Item 3</div>
+    <!-- Add more divs as needed -->
+</div>
 
-        this.element.addEventListener('contextmenu', (event) => {
-          event.preventDefault();
-          this.showContextMenu(event.clientX, event.clientY);
-        });
-      }
+<script>
+    function toggleSelection(element) {
+        element.classList.toggle('selected');
 
-      createContextMenu(options) {
-        const menu = document.createElement('div');
-        menu.classList.add('context-menu');
-        
-        const ul = document.createElement('ul');
-        options.forEach((option, index) => {
-          const li = document.createElement('li');
-          li.textContent = option.label;
-          li.addEventListener('click', () => option.handler(index));
-          ul.appendChild(li);
-        });
-
-        menu.appendChild(ul);
-        document.body.appendChild(menu);
-        return menu;
-      }
-
-      showContextMenu(x, y) {
-        this.menu.style.display = 'block';
-        this.menu.style.left = x + 'px';
-        this.menu.style.top = y + 'px';
-
-        document.addEventListener('click', this.closeContextMenu.bind(this));
-      }
-
-      closeContextMenu() {
-        this.menu.style.display = 'none';
-        document.removeEventListener('click', this.closeContextMenu.bind(this));
-      }
+        // You can perform additional actions based on the selection
+        if (element.classList.contains('selected')) {
+            console.log(element.textContent + ' is selected.');
+        } else {
+            console.log(element.textContent + ' is deselected.');
+        }
     }
+</script>
 
-    const options1 = [
-      { label: 'Option 1', handler: (index) => console.log('Option 1 clicked for element 1') },
-      { label: 'Option 2', handler: (index) => console.log('Option 2 clicked for element 1') },
-      { label: 'Option 3', handler: (index) => console.log('Option 3 clicked for element 1') }
-    ];
-
-    const options2 = [
-      { label: 'Action 1', handler: (index) => console.log('Action 1 clicked for element 2') },
-      { label: 'Action 2', handler: (index) => console.log('Action 2 clicked for element 2') },
-      { label: 'Action 3', handler: (index) => console.log('Action 3 clicked for element 2') }
-    ];
-
-for (let i = 0 ; i<1;i++){
-  new ContextMenu('element1', options1);
-   new ContextMenu('element2', options2);
-}
-  </script>
 </body>
 </html>

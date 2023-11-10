@@ -5,6 +5,44 @@ from openpyxl import Workbook
 app = Flask(__name__)
 socketio = SocketIO(app)
 
+import sqlite3
+DATABASE = 'db.sqlite3'
+
+
+def create_tables():
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS node_data (
+            id INTEGER PRIMARY KEY,
+            name TEXT,
+            left TEXT,
+            top TEXT,
+            states TEXT,
+            children TEXT,
+            "values" TEXT,
+            parents TEXT
+        )
+    ''')
+
+    # Insert nodeData into the node_data table
+    for node in nodeData:
+        cursor.execute('''
+            INSERT INTO node_data (name, left, top, states, children, "values", parents)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            node.get('name', ''),
+            node.get('left', ''),
+            node.get('top', ''),
+            json.dumps(node.get('states', [])),
+            json.dumps(node.get('children', [])),
+            json.dumps(node.get('values', [])),
+            json.dumps(node.get('parents', [])),
+        ))
+
+    conn.commit()
+    conn.close()
 
 nodeData = [
     {
@@ -163,6 +201,9 @@ for node in nodeData:
 # Print the formatted JSON using json.dumps()
 formatted_json = json.dumps(nodeData, indent=4)
 print(formatted_json)
+
+# sqlite database connection
+create_tables()
 
 @app.route("/")
 def hello_world():

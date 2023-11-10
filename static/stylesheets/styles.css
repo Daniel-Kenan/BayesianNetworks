@@ -71,6 +71,7 @@ font-family: 'PT Sans Narrow', sans-serif;
 .node-chart-container {
   width: 100%; /* Set width to fill the node */
   height: calc(100% - 40px);
+  min-width: 250px;
   
   /* Subtract space for the header (h3) */
 }
