@@ -29,7 +29,8 @@ form.addEventListener('submit', function (event) {
     });
 
     // Output the selected data-values
-    document.write(nodenames+"\n"+nodevalues)
+    // document.write(nodenames+"\n"+nodevalues)
+    document.write("Download will start as soon as the case file has been generated.")
     senddata(nodenames,nodevalues)
 });
 

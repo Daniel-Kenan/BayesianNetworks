@@ -215,18 +215,21 @@ def generate_excel():
         workbook = Workbook()
         sheet = workbook.active
         nodes = string1.split(",")
-        n = string2.replace("\"","").replace(":"," ").split("||")
+        values = string2.replace("\"","").replace(":"," ").split("||")
         # Place the strings in the first and second rows
+        nodes += "DISCHARGE_YR++DISCHARGE_LF++DISCHARGE_HF++DISCHARGE_FD".split("++")
+        values += "{0 0.05, 0.9 0.2, 4.6 0.5, 20.9 0.2, 500.6 0.05}++{0 0.05, 0 0.2, 0 0.5, 0.9 0.2, 1.8 0.05}++{1.8 0.05, 4.6 0.2, 11.1 0.5, 20.9 0.2, 11.1 0.05}++{156.3 0.05, 233.1 0.2, 277.9 0.5, 438.2 0.2, 971.6 0.05}".split("++")
+        
         for i in range(len(nodes)):
           sheet.cell(row=1, column=i+1, value=nodes[i])
-          sheet.cell(row=2, column=i+1, value=str(n[i]))
+          sheet.cell(row=2, column=i+1, value=str(values[i]))
 
         # Save the workbook to a temporary file
-        excel_file = 'case.xlsx'
+        excel_file = 'netica_case.xlsx'
         workbook.save(excel_file)
 
         # Send the Excel file for download
-        return send_file(excel_file, as_attachment=True, download_name='output.xlsx', mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        return send_file(excel_file, as_attachment=True, download_name='netica_case.xlsx', mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     except Exception as e:
         return jsonify({'error': 'An error occurred while generating the Excel file'}), 500
     
