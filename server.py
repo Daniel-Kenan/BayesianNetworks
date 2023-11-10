@@ -202,6 +202,7 @@ def handle_update_node_data(data):
     # Emit the updated data to all connected clients
     emit('node_data', {'data': nodeData}, broadcast=True)
     
+import json
 
 @app.route('/api/generate_excel', methods=['POST'])
 def generate_excel():
@@ -213,13 +214,15 @@ def generate_excel():
         # Create a new Excel workbook
         workbook = Workbook()
         sheet = workbook.active
-
+        nodes = string1.split(",")
+        n = string2.replace("\"","").replace(":"," ").split("||")
         # Place the strings in the first and second rows
-        sheet.cell(row=1, column=1, value=string1)
-        sheet.cell(row=2, column=1, value=string2)
+        for i in range(len(nodes)):
+          sheet.cell(row=1, column=i+1, value=nodes[i])
+          sheet.cell(row=2, column=i+1, value=str(n[i]))
 
         # Save the workbook to a temporary file
-        excel_file = 'output.xlsx'
+        excel_file = 'case.xlsx'
         workbook.save(excel_file)
 
         # Send the Excel file for download
@@ -240,3 +243,5 @@ if __name__ == "__main__":
     
     
     asyncio.run(serve(app, config))
+
+   

@@ -1,9 +1,9 @@
    // Define the data mapping for options
    const optionData = [
-    { Zero: 0.85, Low: 0.1, Med: 0.04, High: 0.01 },
-    { Zero: 0.25, Low: 0.6, Med: 0.1, High: 0.05 },
-    { Zero: 0.05, Low: 0.1, Med: 0.6, High: 0.25 },
-   { Zero: 0.01, Low: 0.04, Med: 0.1, High: 0.85 }
+    " Zero: 0.85, Low: 0.1, Med: 0.04, High: 0.01 ",
+    " Zero: 0.25, Low: 0.6, Med: 0.1, High: 0.05 ",
+    " Zero: 0.05, Low: 0.1, Med: 0.6, High: 0.25 ",
+    " Zero: 0.01, Low: 0.04, Med: 0.1, High: 0.85 "
    ];
 
 const form = document.getElementById('assessment-form');
@@ -23,7 +23,7 @@ form.addEventListener('submit', function (event) {
         const selectedOption = select.value;
         const selectedOptionNumber  = select.selectedIndex;
         nodenames += select.parentNode.parentNode.children[0].innerText+","
-        nodevalues += JSON.stringify(optionData[selectedOptionNumber])+","
+        nodevalues += JSON.stringify(optionData[selectedOptionNumber])+"||"
         // Map the selected option to its data-value
       
     });
