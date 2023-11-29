@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Draggable Editable Bar Graph with Chart.js</title>
+  <!-- Include Chart.js library -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Include chartjs-plugin-dragdata -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-dragdata"></script>
+  <style>
+    canvas {
+      max-width: 600px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Draggable Editable Bar Graph</h1>
+
+  <!-- Create input elements for each data point with validation -->
+  <label for="value1">Value 1:</label>
+  <input type="number" id="value1" value="12" oninput="updateChart()" min="0" step="1"><br>
+
+  <label for="value2">Value 2:</label>
+  <input type="number" id="value2" value="19" oninput="updateChart()" min="0" step="1"><br>
+
+  <label for="value3">Value 3:</label>
+  <input type="number" id="value3" value="3" oninput="updateChart()" min="0" step="1"><br>
+
+  <label for="value4">Value 4:</label>
+  <input type="number" id="value4" value="5" oninput="updateChart()" min="0" step="1"><br>
+
+  <label for="value5">Value 5:</label>
+  <input type="number" id="value5" value="2" oninput="updateChart()" min="0" step="1"><br>
+
+  <!-- Create a canvas element to render the chart -->
+  <canvas id="myChart" width="400" height="200"></canvas>
+
+  <script>
+    // Function to update the chart with new values
+    function updateChart() {
+      // Get the input values
+      var value1 = document.getElementById('value1').value;
+      var value2 = document.getElementById('value2').value;
+      var value3 = document.getElementById('value3').value;
+      var value4 = document.getElementById('value4').value;
+      var value5 = document.getElementById('value5').value;
+
+      // Update the chart data
+      myChart.data.datasets[0].data = [value1, value2, value3, value4, value5];
+
+      // Update the chart
+      myChart.update();
+    }
+
+    // Sample data for the bar graph
+    var data = {
+      labels: ['Label 1', 'Label 2', 'Label 3', 'Label 4', 'Label 5'],
+      datasets: [{
+        label: 'Sample Data',
+        data: [12, 19, 3, 5, 2],
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.2)',
+          'rgba(54, 162, 235, 0.2)',
+          'rgba(255, 206, 86, 0.2)',
+          'rgba(75, 192, 192, 0.2)',
+          'rgba(153, 102, 255, 0.2)', 
+        ],
+        borderColor: [
+          'rgba(255, 99, 132, 1)',
+          'rgba(54, 162, 235, 1)',
+          'rgba(255, 206, 86, 1)',
+          'rgba(75, 192, 192, 1)',
+          'rgba(153, 102, 255, 1)',
+        ],
+        borderWidth: 1
+      }]
+    };
+
+    // Get the canvas element
+    var ctx = document.getElementById('myChart').getContext('2d');
+
+    // Create a bar chart with improved options and draggable support
+    var myChart = new Chart(ctx, {
+      type: 'bar',
+      data: data,
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        },
+        plugins: {
+          tooltip: {
+            enabled: true,
+            mode: 'single',
+            callbacks: {
+              label: function (context) {
+                return 'Value: ' + context.raw;
+              }
+            }
+          },
+          dragData: true,
+          zoom: {
+            drag: {
+              enabled: true,
+            },
+            mode: 'y',
+          },
+        },
+        onClick: function (evt, element) {
+          if (element.length > 0) {
+            var datasetIndex = element[0].datasetIndex;
+            var index = element[0].index;
+
+            var newValue = prompt('Enter a new value:');
+            if (newValue !== null) {
+              newValue = parseInt(newValue, 10);
+              if (!isNaN(newValue)) {
+                myChart.data.datasets[datasetIndex].data[index] = newValue;
+                myChart.update();
+                updateInputValues();
+              } else {
+                alert('Please enter a valid number.');
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Function to update input values based on chart data
+    function updateInputValues() {
+      var values = myChart.data.datasets[0].data;
+      document.getElementById('value1').value = values[0];
+      document.getElementById('value2').value = values[1];
+      document.getElementById('value3').value = values[2];
+      document.getElementById('value4').value = values[3];
+      document.getElementById('value5').value = values[4];
+    }
+  </script>
+</body>
+</html>

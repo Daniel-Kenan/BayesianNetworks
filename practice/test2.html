@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Draggable Bar Graph</title>
+    <!-- Include Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        canvas {
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div style="width: 80%; margin: auto;">
+        <canvas id="barChart"></canvas>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var initialData = [20, 30, 40, 50, 60];
+
+            var ctx = document.getElementById("barChart").getContext("2d");
+
+            var myBarChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Label 1', 'Label 2', 'Label 3', 'Label 4', 'Label 5'],
+                    datasets: [{
+                        label: 'Bar Graph',
+                        data: initialData,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onDrag: function (event, datasetIndex, index, value) {
+                        var yPos = myBarChart.scales.y.getValueForPixel(event.y);
+                        myBarChart.data.datasets[datasetIndex].data[index] = yPos;
+                        myBarChart.update();
+                    }
+                }
+            });
+
+            // Add drag event listener to canvas
+            var isDragging = false;
+            var dragStartIndex;
+
+            document.getElementById("barChart").addEventListener("mousedown", function (event) {
+                var activePoints = myBarChart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, false);
+                if (activePoints.length > 0) {
+                    isDragging = true;
+                    dragStartIndex = activePoints[0].index;
+                }
+            });
+
+            document.addEventListener("mousemove", function (event) {
+                if (isDragging) {
+                    var yPos = myBarChart.scales.y.getValueForPixel(event.y);
+                    myBarChart.data.datasets[0].data[dragStartIndex] = yPos;
+                    myBarChart.update();
+                }
+            });
+
+            document.addEventListener("mouseup", function () {
+                isDragging = false;
+            });
+        });
+    </script>
+</body>
+</html>
