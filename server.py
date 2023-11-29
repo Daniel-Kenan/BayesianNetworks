@@ -1,18 +1,28 @@
 import asyncio
-from flask import Flask, render_template,request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, send_file
 from flask_socketio import SocketIO, emit
 from openpyxl import Workbook
+import sqlite3
+import json
+import os
+from hypercorn.config import Config
+from hypercorn.asyncio import serve
+import nodeszh
+
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['ALLOWED_EXTENSIONS'] = {'txt','xlsx'}
+DATABASE = 'db.sqlite3'
 socketio = SocketIO(app)
 
-import sqlite3
-DATABASE = 'db.sqlite3'
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 
-def create_tables():
+def create_tables(node_data):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
-
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS node_data (
             id INTEGER PRIMARY KEY,
@@ -27,7 +37,7 @@ def create_tables():
     ''')
 
     # Insert nodeData into the node_data table
-    for node in nodeData:
+    for node in node_data:
         cursor.execute('''
             INSERT INTO node_data (name, left, top, states, children, "values", parents)
             VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -44,248 +54,167 @@ def create_tables():
     conn.commit()
     conn.close()
 
-nodeData = [
-    {
-        "name": "Fish",
-        "left": "1246px",
-        "top": "353px",
-        "states": [
-            {
-                "name": "zero",
-                "probability": 0.2
-            },
-            {
-                "name": "low",
-                "probability": 0
-            },
-            {
-                "name": "medium",
-                "probability": 0
-            },
-            {
-                "name": "high",
-                "probability": 0
-            },
-            {
-                "name": "zero",
-                "probability": 0.2
-            }
-        ],
-        "children": []
-    },
-    {
-        "name": "Cover",
-        "left": "717px",
-        "top": "444px",
-        "states": [
-            {
-                "name": "zero",
-                "probability": 1
-            },
-            {
-                "name": "low",
-                "probability": 0.25
-            },
-            {
-                "name": "medium",
-                "probability": 0.01
-            },
-            {
-                "name": "high",
-                "probability": 0.5
-            }
-        ],
-        "children": [
-            "Fish"
-        ]
-    },
-    {
-        "name": "Migration",
-        "left": "689px",
-        "top": "107px",
-        "states": [
-            {
-                "name": "zero",
-                "probability": 0.95
-            },
-            {
-                "name": "low",
-                "probability": 0.5
-            },
-            {
-                "name": "medium",
-                "probability": 0.25
-            },
-            {
-                "name": "high",
-                "probability": 0
-            }
-        ],
-        "children": [
-            "Fish"
-        ]
-    },
-    {
-        "name": "Barrier",
-        "left": "62px",
-        "top": "112px",
-        "states": [
-            {
-                "name": "none",
-                "probability": 0.3
-            },
-            {
-                "name": "some",
-                "probability": 0.5
-            },
-            {
-                "name": "many",
-                "probability": 0.2
-            },
-            {
-                "name": "huge",
-                "probability": 0.2
-            }
-        ],
-        "children": [
-            "Migration"
-        ]
-    },
-    {
-        "name": "Discharge",
-        "left": "72px",
-        "top": "441px",
-        "states": [
-            {
-                "name": "zero",
-                "probability": 0.1
-            },
-            {
-                "name": "low",
-                "probability": 0.4
-            },
-            {
-                "name": "medium",
-                "probability": 0.4
-            },
-            {
-                "name": "high",
-                "probability": 0.1
-            }
-        ],
-        "children": [
-            "Cover"
-        ]
-    }
-]
-import json
-parent_child_map = {}
 
-# Populate parent_child_map with parent-child relationships
-for node in nodeData:
-    if "children" in node and node["children"]:
-        for child_name in node["children"]:
-            if child_name in parent_child_map:
-                parent_child_map[child_name].append(node["name"])
-            else:
-                parent_child_map[child_name] = [node["name"]]
+def initialize_data_from_database():
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
 
-# Update nodes with values and parents
-for node in nodeData:
-    node["values"] = [[], []]
-    if node["name"] in parent_child_map:
-        node["parents"] = parent_child_map[node["name"]]
-    else:
-        node["parents"] = []
+    # Fetch data from the node_data table
+    cursor.execute('SELECT * FROM node_data')
+    rows = cursor.fetchall()
 
-# Print the formatted JSON using json.dumps()
-formatted_json = json.dumps(nodeData, indent=4)
-print(formatted_json)
+    # Transform rows into a list of dictionaries (node_data)
+    node_data = []
+    for row in rows:
+       
+        node_data.append({
+            "name": row[1],
+            "left": row[2],
+            "top": row[3],
+            "states": json.loads(row[4]),
+            "children": json.loads(row[5]),
+            "values": json.loads(row[6]),
+            "parents": json.loads(row[7])
+        })
 
-# sqlite database connection
-create_tables()
+    conn.close()
+    return node_data
 
-@app.route("/")
-def hello_world():
-    return render_template("main.html")
-
-@app.route("/water")
-def water():
-    return render_template("water.html")
-
-@socketio.on('connect')
-def on_connect():
-    print('A client connected')
-
-@socketio.on('disconnect')
-def on_disconnect():
-    print('A client disconnected')
-
-@socketio.on('client_message')
-def handle_client_message(data):
-    print('Received from client:', data['message'])
-    # Here you can process the data or send a response back to the client
-    # For example:
-    response_message = 'Message received on the server!'
-    emit('server_message', {'message': response_message})
+# initialise from file 
+def initialize_data():
+    node_data = []
+    node_data += nodeszh.nodeData
+    return node_data
 
 
-@socketio.on('request_node_data')
-def send_node_data():
-    emit('node_data', {'data': nodeData})
+def build_parent_child_map(node_data):
+    parent_child_map = {}
+
+    # Populate parent_child_map with parent-child relationships
+    for node in node_data:
+        if "children" in node and node["children"]:
+            for child_name in node["children"]:
+                if child_name in parent_child_map:
+                    parent_child_map[child_name].append(node["name"])
+                else:
+                    parent_child_map[child_name] = [node["name"]]
+
+    return parent_child_map
 
 
-@socketio.on('update_node_data')
-def handle_update_node_data(data):
-    updated_node_data = data['data']
-    global nodeData
-    nodeData = updated_node_data
-    # Emit the updated data to all connected clients
-    emit('node_data', {'data': nodeData}, broadcast=True)
-    
-import json
+def update_nodes_with_values_and_parents(node_data, parent_child_map):
+    for node in node_data:
+        node["values"] = [[], []]
+        if node["name"] in parent_child_map:
+            node["parents"] = parent_child_map[node["name"]]
+        else:
+            node["parents"] = []
+
+    return node_data
+
+
+def print_formatted_json(node_data):
+    formatted_json = json.dumps(node_data, indent=4)
+    # print(formatted_json)
+
+
+def run_flask_app():
+    @app.route("/")
+    def hello_world():
+        return render_template("main.html")
+
+    @app.route("/water")
+    def water():
+        return render_template("water.html")
+
+    @socketio.on('connect')
+    def on_connect():
+        print('A client connected')
+
+    @socketio.on('disconnect')
+    def on_disconnect():
+        print('A client disconnected')
+
+    @socketio.on('client_message')
+    def handle_client_message(data):
+        # print('Received from client:', data['message'])
+        # Here you can process the data or send a response back to the client
+        # For example:
+        response_message = 'Message received on the server!'
+        emit('server_message', {'message': response_message})
+
+    @socketio.on('request_node_data')
+    def send_node_data():
+        emit('node_data', {'data': node_data})
+
+    @socketio.on('update_node_data')
+    def handle_update_node_data(data):
+        updated_node_data = data['data']
+        global node_data
+        node_data = updated_node_data
+        # Emit the updated data to all connected clients
+        emit('node_data', {'data': node_data}, broadcast=True)
+
+
+def run_hypercorn_server():
+    port = int(os.environ.get('PORT', 4400))  # Default to 4400 if PORT environment variable not set
+    config = Config()
+  
+    config.bind = [f"0.0.0.0:{port}"]
+    asyncio.run(serve(app, config))
+
 
 @app.route('/api/generate_excel', methods=['POST'])
 def generate_excel():
-    try:
-        data = request.get_json()
-        string1 = data.get('string1', '')
-        string2 = data.get('string2', '')
+        try:
+            print("*"*10)
+            string1 = request.form.get('string1', '')
+            string2 = request.form.get('string2', '')
+            print("*"*10)
+            print(string1,string2)
+            print("*"*10)
+            natural_flows_file = request.files['naturalFlows']
+            if natural_flows_file and allowed_file(natural_flows_file.filename):
+            # Ensure the directory exists
+                os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-        # Create a new Excel workbook
-        workbook = Workbook()
-        sheet = workbook.active
-        nodes = string1.split(",")
-        values = string2.replace("\"","").replace(":"," ").split("||")
-        # Place the strings in the first and second rows
-        nodes += "DISCHARGE_YR++DISCHARGE_LF++DISCHARGE_HF++DISCHARGE_FD".split("++")
-        values += "{0 0.05, 0.9 0.2, 4.6 0.5, 20.9 0.2, 500.6 0.05}++{0 0.05, 0 0.2, 0 0.5, 0.9 0.2, 1.8 0.05}++{1.8 0.05, 4.6 0.2, 11.1 0.5, 20.9 0.2, 11.1 0.05}++{156.3 0.05, 233.1 0.2, 277.9 0.5, 438.2 0.2, 971.6 0.05}".split("++")
-        
-        for i in range(len(nodes)):
-          sheet.cell(row=1, column=i+1, value=nodes[i])
-          sheet.cell(row=2, column=i+1, value=str(values[i]))
+    # Save the file
+                filename = os.path.join(app.config['UPLOAD_FOLDER'], 'naturalflow.xlsx')
+                natural_flows_file.save(filename)
+                print("saved file")
+            else:
+               return jsonify({'error': 'Invalid file format or missing file'}), 400
+              
+            # Create a new Excel workbook
+            workbook = Workbook()
+            sheet = workbook.active
+            nodes = string1.split(",")
+            values = string2.replace("\"", "").replace(":", " ").split("||")
 
-        # Save the workbook to a temporary file
-        excel_file = 'netica_case.xlsx'
-        workbook.save(excel_file)
+            # Place the strings in the first and second rows
+            nodes += "DISCHARGE_YR++DISCHARGE_LF++DISCHARGE_HF++DISCHARGE_FD".split("++")
+            values += "{0 0.05, 0.9 0.2, 4.6 0.5, 20.9 0.2, 500.6 0.05}++{0 0.05, 0 0.2, 0 0.5, 0.9 0.2, 1.8 0.05}++{1.8 0.05, 4.6 0.2, 11.1 0.5, 20.9 0.2, 11.1 0.05}++{156.3 0.05, 233.1 0.2, 277.9 0.5, 438.2 0.2, 971.6 0.05}".split("++")
 
-        # Send the Excel file for download
-        return send_file(excel_file, as_attachment=True, download_name='netica_case.xlsx', mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    except Exception as e:
-        return jsonify({'error': 'An error occurred while generating the Excel file'}), 500
-    
+            for i in range(len(nodes)):
+                sheet.cell(row=1, column=i + 1, value=nodes[i])
+                sheet.cell(row=2, column=i + 1, value=str(values[i]))
+
+        #     # Save the workbook to a temporary file
+            excel_file = os.path.join(app.config['UPLOAD_FOLDER'], 'netica_case.xlsx')
+            workbook.save(excel_file)
+
+        #     # Send the Excel file for download
+            return send_file(excel_file, as_attachment=True, download_name='netica_case.xlsx',
+                             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        except Exception as e:
+            return jsonify({'error': 'An error occurred while generating the Excel file'}), 500
+
+
 if __name__ == "__main__":
-       
-    # socketio.run(app, debug=True, port=4400,allow_unsafe_werkzeug=True)
-    import os
-    from hypercorn.config import Config
-    from hypercorn.asyncio import serve
-
-    port = int(os.environ.get('PORT', 4400))  # Default to 4400 if PORT environment variable not set
-    config = Config()
-    config.bind = [f"0.0.0.0:{port}"]
-    
-    
-    asyncio.run(serve(app, config))
-
-   
+    node_data = initialize_data() 
+    create_tables(node_data)
+    parent_child_map = build_parent_child_map(node_data)
+    node_data = update_nodes_with_values_and_parents(node_data, parent_child_map)
+    print_formatted_json(node_data)
+    run_flask_app()
+    run_hypercorn_server()
