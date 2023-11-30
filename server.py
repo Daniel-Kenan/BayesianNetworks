@@ -8,6 +8,7 @@ import os
 from hypercorn.config import Config
 from hypercorn.asyncio import serve
 import nodeszh
+from nodegen import process_excel_file
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -162,6 +163,15 @@ def run_hypercorn_server():
   
     config.bind = [f"0.0.0.0:{port}"]
     asyncio.run(serve(app, config))
+
+
+@app.route('/api/generate_cas_file', methods=['GET'])
+def generate_cas():
+    excel_file = os.path.join(app.config['UPLOAD_FOLDER'], 'netica_case.xlsx')
+    
+    cas_file_path = process_excel_file(excel_file)
+    return send_file(cas_file_path, as_attachment=True, download_name='netica_case.cas', mimetype='application/octet-stream')
+    
 
 
 @app.route('/api/generate_excel', methods=['POST'])
